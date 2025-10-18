@@ -1,0 +1,57 @@
+node_modules
+.env
+npm-debug.log
+```
+> **Why ignore `.env`?** Because your secret keys (like your database password and JWT secret) should never be built into the container image. We will provide these secrets securely through the hosting platform's environment variables.
+
+**4. Build and Test Your Docker Image (Optional but Recommended):**
+* Open your terminal in the `BACKEND` directory.
+* Run the build command:
+  ```bash
+  docker build -t inter-iit-backend .
+  ```
+* Once built, you can run it locally to test:
+  ```bash
+  docker run -p 5000:5000 -e MONGO_URL="your_atlas_url" -e JWT_SECRET="your_secret" inter-iit-backend
+  ```
+  This proves your container works before you deploy it.
+
+---
+
+### ## Part 2: Deploying to Render and Vercel
+
+Now that your backend is containerized, deploying is straightforward.
+
+**1. Push to GitHub:**
+* Make sure you have committed and pushed the new `Dockerfile` and `.dockerignore` files to your **backend's GitHub repository**.
+
+**2. Deploy Backend on Render (as a Docker Container):**
+* Go to your **[Render.com](https://render.com)** dashboard.
+* Click **"New +"** -> **"Web Service"**.
+* Select your **backend's GitHub repository**.
+* **Crucially, Render will detect your `Dockerfile`**. It will automatically switch the "Environment" from "Node" to **"Docker"**.
+* **Configuration:**
+    * **Name:** `inter-iit-backend`
+    * **Region:** Singapore
+    * **Branch:** `main`
+* **Add Environment Variables:** This step is the same as before. You must add all your secrets from your `.env` file (`MONGO_URL`, `JWT_SECRET`, `GMAIL_USER`, etc.) to Render's environment variable settings. * Click **"Create Web Service"**. Render will build the Docker image from your `Dockerfile` and deploy it.
+* Once it's live, **copy the backend URL** (e.g., `https://inter-iit-backend.onrender.com`).
+
+**3. Deploy Frontend on Vercel:**
+* This process remains the same as we discussed.
+* Go to your **[Vercel.com](https://vercel.com)** dashboard.
+* Import your **frontend's GitHub repository**.
+* **Add the Environment Variable:**
+    * **Name:** `VITE_API_BASE_URL`
+    * **Value:** Paste your live Render backend URL and add `/api/v1` to the end. (e.g., `https://inter-iit-backend.onrender.com/api/v1`)
+* Click **"Deploy"**.
+
+**4. Final CORS Update:**
+* Go back to your **backend's `index.js` file**.
+* Update the `cors` origin to allow your new Vercel frontend URL.
+  ```javascript
+  app.use(cors({
+    origin: 'https://your-frontend-project-name.vercel.app',
+    credentials: true
+  }));
+  
