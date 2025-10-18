@@ -3,19 +3,18 @@ const router = express.Router();
 const {
   getCommentsByPostId,
   createComment,
-  updateComment,
   deleteComment,
-  upvoteComment,
-  removeUpvote
+  voteComment // Import the new, unified vote function
 } = require('../controllers/commentController');
 const { auth } = require('../middleware/auth');
 
 // Comment routes
 router.get('/', getCommentsByPostId);
 router.post('/', auth, createComment);
-router.put('/:id', auth, updateComment);
 router.delete('/:id', auth, deleteComment);
-router.post('/:id/upvote', auth, upvoteComment);
-router.delete('/:id/upvote', auth, removeUpvote);
+
+// This single new route handles both upvotes and downvotes
+router.post('/:id/vote', auth, voteComment);
 
 module.exports = router;
+
