@@ -10,10 +10,23 @@ const dbConnect = require(path.resolve(__dirname, "config/database.js"));
 const app = express();
 const PORT = process.env.PORT || 5000;
 // Middleware
-app.use(cors({
-  origin: 'http://localhost:5173/', // Your frontend URL
-  credentials: true
-}));
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(d => d.trim())
+    : ['http://localhost:5173', 'http://localhost:3000']; // Default for local dev
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow requests with no origin OR if the origin is in our whitelist
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('This origin is not allowed by CORS'));
+        }
+    },
+    credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
