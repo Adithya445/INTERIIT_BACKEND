@@ -1,35 +1,33 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
+
+// Set the API key from your environment variables
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const mailSender = async (email, title, body) => {
     try {
-        // Create a transporter using Gmail's SMTP server and your App Password
-        let transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com', // Gmail's SMTP server
-            port: 465, // Standard port for SSL
-            secure: true, // Use SSL
-            auth: {
-                user: process.env.GMAIL_USER, // Your Gmail address from .env
-                pass: process.env.GMAIL_APP_PASSWORD, // Your App Password from .env
-            }
-        });
-
-        // Send the email
-        let info = await transporter.sendMail({
-            from: `"Inter IIT Tech 14.0" <${process.env.GMAIL_USER}>`, // Send from your own address
-            to: email, // The recipient
+        const msg = {
+            to: email, // Recipient
+            from: process.env.SENDGRID_SENDER_EMAIL, // Your verified sender email
             subject: title,
             html: body,
-        });
+        };
 
-        console.log("✅ Email sent successfully via Gmail:", info.messageId);
+        const info = await sgMail.send(msg);
+
+        console.log("✅ Email sent successfully via SendGrid:", info[0].headers['x-message-id']);
         return info;
 
     } catch (error) {
-        console.error('❌ Error sending email via Gmail:', error.message);
+        console.error('❌ Error sending email via SendGrid:', error);
+        
+        // If SendGrid returns detailed errors, log them
+        if (error.response) {
+            console.error(error.response.body)
+        }
+        
         throw error;
     }
 };
 
 module.exports = mailSender;
-
