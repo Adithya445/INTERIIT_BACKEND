@@ -111,7 +111,13 @@ exports.login = async (req, res) => {
         }
         const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '7d' });
         user.password = undefined;
-        const options = { httpOnly: true, expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) };
+        const options = {
+    httpOnly: true,
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    // Add these two lines for cross-domain cookies
+    sameSite: 'none',
+    secure: true
+};
         res.status(200).cookie('token', token, options).json({ success: true, user, token });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Login error.' });
